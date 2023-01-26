@@ -45,9 +45,10 @@ export default function Product(){
 			name:title,
 			description,
 			price,
-			sellerId: "",
+			sellerId: "3988518e-2f7f-45e9-8f40-cd9b6693ea52",
 			categories: [category],
-			tags: tags.toLowerCase().split(" ")
+			tags: tags.toLowerCase().split(" "),
+			properties: []
 		}
 		console.log(request);
 		fetch("http://localhost:5047/Products/Submit",{
