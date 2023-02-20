@@ -16,7 +16,7 @@ export default function Layout({children}: any){
 
 
 		<div className="min-h-screen flex flex-row">
-			<aside className="w-2/12 flex flex-col shadow shadow-lg pt-10 bg-foreground text-ground">
+			<aside className="w-2/12 flex flex-col shadow-lg pt-10 bg-foreground text-ground">
 				<Link href="/product" className="m-2  transition duration-500 hover:scale-105 transform-gpu">Ürün Ekle</Link>
 				<Link href="/category" className="m-2  transition duration-500 hover:scale-105 transform-gpu">Kategori Ekle</Link>
 			</aside>
