@@ -20,7 +20,7 @@ export default function Layout({children}: any){
 				<Link href="/product" className="m-2  transition duration-500 hover:scale-105 transform-gpu">Ürün Ekle</Link>
 				<Link href="/category" className="m-2  transition duration-500 hover:scale-105 transform-gpu">Kategori Ekle</Link>
 			</aside>
-			<main className="w-9/12 flex flex-col items-center" >
+			<main className="w-10/12 p-5 flex flex-col items-center" >
 			{children}
 			</main>
 		</div>
