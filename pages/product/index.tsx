@@ -24,49 +24,61 @@ declare type Product = {
 	uri?: string
 };
 
-export default function Product() {
-	const [title, setTitle] = useState("");
-	
-	const [description, setDescription] = useState("");
-	
-	const [price, setPrice] = useState("");
-	
-	const [tags, setTags] = useState("");
-	
-	const [category, setCategory]: [Category, any] = useState({
-		id: "",
-		name: "",
-		uri: "",
-	});
-	
-	const [properties, setProperties] = useState("");
-	
-	const [categories, setCategories]: [Array<Category>, any] = useState([]);
+declare type ComponentForm = {
+	title: string,
+	description: string,
+	price: number,
+	tags: string,
+	category: Category,
+	properties: Array<{key:string, value:string}>,
+}
 
-	const [products, setProducts]: [Array<Product>, Dispatch<SetStateAction<Array<Product>>>] = useState(Array())
-	
-	const [options, setOptions]: [
-		Array<{ value: number; label: string }>,
-		Dispatch<SetStateAction<Array<{ value: number; label: string }>>>
-	] = useState(Array());
+declare type SelectOption = { value: number; label: string }
+
+declare type PageState = {
+	categories: Category[],
+	products: Product[],
+	selectOptions: SelectOption[]
+}
+
+declare type ComponentState = {
+	formState: ComponentForm,
+	pageState: PageState
+
+}
+
+export default function Product() {
+
+	const emptyState: ComponentState = {
+		formState: {
+			title: "",
+			description: "",
+			price: 0,
+			category: {id: "", name: "",uri:""},
+			properties: Array(),
+			tags: ""
+		},
+		pageState: {
+			categories: Array(),
+			products: Array(),
+			selectOptions: Array()
+		}
+	};
+	const [state, setState] = useState(emptyState);
 
 	useEffect(() => {
 		fetch("http://localhost:5047/Categories")
 		.then((response) => {
+			console.log(response);
 			if (response.ok) return response.json();
 			throw Error(response.statusText);
 		})
 		.then((data) => {
 			let datas: Array<Category> = [];
 			data.map((item: any) => {
-				datas.push({ id: item.id, name: item.name, uri: item.uri });
+				state.pageState.categories.push({ id: item.id, name: item.name, uri: item.uri });
 			});
-			setCategories(datas);
-			setOptions(
-				categories.map((item, index) => {
-				return { value: index, label: item.name };
-				})
-			);
+			state.pageState.categories.forEach((item, index) => state.pageState.selectOptions.push({ value: index, label: item.name }))
 		})
 		.catch((err) => console.error(err));
 
@@ -76,22 +88,24 @@ export default function Product() {
 			throw Error(response.statusText)
 		}).then(data => {
 			if (Array.isArray(data))
-				setProducts(data as Product[])
+				state.pageState.products = data as Product[]
 		})
-		.catch
+		.catch((err) =>{
+			console.error(err);
+		})
 		
-	}, []);
+	}, [state]);
 	
 	const submitForm = (e: SyntheticEvent) => {
 		e.preventDefault();
 		
 		let request = {
-			name: title,
-			description,
-			price,
-			sellerId: "3988518e-2f7f-45e9-8f40-cd9b6693ea52",
-			categories: [category],
-			tags: tags.toLowerCase().split(" "),
+			name: state.formState.title,
+			description: state.formState.description,
+			price: state.formState.price,
+			sellerId: "b633bee4-f820-4e18-9dbe-f928d172a308",
+			categories: [state.formState.category],
+			tags: state.formState.tags.toLowerCase().split(" "),
 			properties: [],
 		};
 		fetch("http://localhost:5047/Products/Submit", {
@@ -112,8 +126,8 @@ export default function Product() {
 					className=""
 					type="text"
 					id="title"
-					value={title}
-					onChange={(e) => setTitle(e.target.value)}
+					value={state.formState.title}
+					onChange={(e) => state.formState.title = e.target.value}
 					placeholder="Başlık"
 				/>
 			</div>
@@ -123,8 +137,8 @@ export default function Product() {
 					id="price"
 					className=""
 					type="number"
-					value={price}
-					onChange={(e) => setPrice(e.target.value)}
+					value={state.formState.price}
+					onChange={(e) => state.formState.price = parseInt(e.target.value)}
 					placeholder="Fiyat"
 				/>
 			</div>
@@ -134,23 +148,28 @@ export default function Product() {
 					id="tags"
 					className=""
 					type="text"
-					value={tags}
-					onChange={(e) => setTags(e.target.value)}
+					value={state.formState.tags}
+					onChange={(e) => state.formState.tags = e.target.value}
 					placeholder="Etiketler"
 				/>
 			</div>
 			<div className="flex flex-col col-span-3 p-2">
-				<label htmlFor="category">Kategori</label>
+				<label>Kategori</label>
 				<Select
-					id="category"
-					options={options}
+					options={state.pageState.selectOptions}
 					placeholder="Kategori Seç"
+					instanceId={"select"}
+					classNames={{
+						control: (state) =>
+						  state.isFocused ? 'border-red-600' : 'border-grey-300',
+						
+					  }}
 					onChange={(e) => {
 					if (e == null) {
 						alert("Lütfen kategori seç");
 						return;
 					}
-					setCategory(categories[e?.value ?? 0]);
+					state.formState.category = state.pageState.categories[e?.value ?? 0];
 					}}
 				/>
 			</div>
@@ -158,15 +177,19 @@ export default function Product() {
 				<label htmlFor="short-description">Kısa Açıklama</label>
 				<textarea
 					className=""
-					value={description}
+					value={state.formState.description}
 					id="short-description"
-					onChange={(e) => setDescription(e.target.value)}
+					onChange={(e) => state.formState.description = e.target.value}
 					placeholder="Açıklama"
 				/>
 			</div>
 			<div className="col-span-3 flex flex-row justify-center">
 				<button className="mx-auto p-2 border-2 rounded-md border-gray-700 hover:bg-slate-700 hover:text-gray-200" type="submit">Kaydet</button>
 			</div>
+		</form>
+		<form action="localhost:5047/Media/Image" encType="multipart/form-data" method="post">
+			<input type="file" name="file" id="file" />
+			<input type="submit" value="Kaydet" />
 		</form>
 		<table className="w-full text-smtext-left text-gray-500 dark:text-gray-400">
 			<thead className="p-2 text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -178,7 +201,7 @@ export default function Product() {
 				</tr>
 			</thead>
 			<tbody>
-				{products.map((item, index) => 
+				{state.pageState.products.map((item, index) => 
 					<tr 
 						className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-700"
 						key={index} onClick={() => window.location.href = `/product/info/${item.uri}`}>

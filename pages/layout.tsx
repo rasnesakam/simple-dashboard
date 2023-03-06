@@ -2,9 +2,16 @@ import Head from 'next/head'
 import Link from 'next/link'
 import styles from '../styles/Home.module.css'
 
+function login(){
+
+}
+
+function content(children: any){
+
+}
 
 export default function Layout({children}: any){
-
+	
 	return <>
 	
 		<Head>
@@ -21,7 +28,7 @@ export default function Layout({children}: any){
 				<Link href="/category" className="m-2  transition duration-500 hover:scale-105 transform-gpu">Kategori Ekle</Link>
 			</aside>
 			<main className="w-10/12 p-5 flex flex-col items-center" >
-			{children}
+				{children}
 			</main>
 		</div>
 		
