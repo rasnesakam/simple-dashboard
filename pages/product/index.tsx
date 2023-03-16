@@ -1,11 +1,18 @@
-import {
-  Dispatch,
-  SetStateAction,
-  SyntheticEvent,
-  useEffect,
-  useState,
+import React, {
+	useEffect,
+	useState,
 } from "react";
 import Select from "react-select";
+import {useAppSelector} from "src/redux/Store";
+
+interface ProductForm extends EventTarget{
+	title: HTMLInputElement,
+	price: HTMLInputElement,
+	tags: HTMLInputElement,
+	category: HTMLInputElement,
+	description: HTMLTextAreaElement,
+	imageUris: HTMLInputElement
+}
 
 declare type Category = {
   id: string,
@@ -24,61 +31,47 @@ declare type Product = {
 	uri?: string
 };
 
-declare type ComponentForm = {
-	title: string,
-	description: string,
-	price: number,
-	tags: string,
-	category: Category,
-	properties: Array<{key:string, value:string}>,
-}
-
 declare type SelectOption = { value: number; label: string }
 
 declare type PageState = {
 	categories: Category[],
 	products: Product[],
-	selectOptions: SelectOption[]
-}
-
-declare type ComponentState = {
-	formState: ComponentForm,
-	pageState: PageState
-
+	selectOptions: SelectOption[],
+	selectedCategory: Category
 }
 
 export default function Product() {
 
-	const emptyState: ComponentState = {
-		formState: {
-			title: "",
-			description: "",
-			price: 0,
-			category: {id: "", name: "",uri:""},
-			properties: Array(),
-			tags: ""
-		},
-		pageState: {
-			categories: Array(),
-			products: Array(),
-			selectOptions: Array()
+	const emptyState: PageState = {
+		categories: [],
+		products: [],
+		selectOptions: [],
+		selectedCategory: {
+			name:"",
+			uri: "",
+			id: ""
 		}
 	};
 	const [state, setState] = useState(emptyState);
+	const profile = useAppSelector((state) => state.profile);
 
-	useEffect(() => {
+	useEffect( () => {
 		fetch("http://localhost:5047/Categories")
 		.then((response) => {
-			console.log(response);
 			if (response.ok) return response.json();
 			throw Error(response.statusText);
 		})
 		.then((data) => {
-			let datas: Array<Category> = [];
-			data.map((item: any) => {
-				state.pageState.categories.push({ id: item.id, name: item.name, uri: item.uri });
-			});
-			state.pageState.categories.forEach((item, index) => state.pageState.selectOptions.push({ value: index, label: item.name }))
+			if (Array.isArray(data))
+				data.forEach(val => {
+					state.categories.push({id: val.id, uri: val.uri, name: val.name})
+				})
+			setState(
+				{
+					...state,
+						selectOptions: state.categories.map<SelectOption>((category, index) => ({value:index, label: category.name}))
+				}
+			)
 		})
 		.catch((err) => console.error(err));
 
@@ -88,26 +81,31 @@ export default function Product() {
 			throw Error(response.statusText)
 		}).then(data => {
 			if (Array.isArray(data))
-				state.pageState.products = data as Product[]
+				state.products = data as Product[]
 		})
 		.catch((err) =>{
 			console.error(err);
 		})
-		
+		return () => {
+			state.categories.splice(0,state.categories.length);
+			state.products.splice(0,state.products.length);
+			state.selectOptions.splice(0, state.selectOptions.length);
+		}
 	}, [state]);
 	
-	const submitForm = (e: SyntheticEvent) => {
+	const submitForm = (e: React.SyntheticEvent) => {
 		e.preventDefault();
-		
+		const target = e.target as ProductForm;
 		let request = {
-			name: state.formState.title,
-			description: state.formState.description,
-			price: state.formState.price,
-			sellerId: "b633bee4-f820-4e18-9dbe-f928d172a308",
-			categories: [state.formState.category],
-			tags: state.formState.tags.toLowerCase().split(" "),
+			name: target.title.value,
+			description: target.description.value,
+			price: parseInt(target.price.value),
+			sellerId: profile.id,
+			categories: [],
+			tags: target.tags.value.toLowerCase().split(" "),
 			properties: [],
 		};
+
 		fetch("http://localhost:5047/Products/Submit", {
 			method: "POST",
 			headers: {
@@ -126,8 +124,7 @@ export default function Product() {
 					className=""
 					type="text"
 					id="title"
-					value={state.formState.title}
-					onChange={(e) => state.formState.title = e.target.value}
+					name="title"
 					placeholder="Başlık"
 				/>
 			</div>
@@ -137,8 +134,7 @@ export default function Product() {
 					id="price"
 					className=""
 					type="number"
-					value={state.formState.price}
-					onChange={(e) => state.formState.price = parseInt(e.target.value)}
+					name="price"
 					placeholder="Fiyat"
 				/>
 			</div>
@@ -148,28 +144,24 @@ export default function Product() {
 					id="tags"
 					className=""
 					type="text"
-					value={state.formState.tags}
-					onChange={(e) => state.formState.tags = e.target.value}
+					name="tags"
 					placeholder="Etiketler"
 				/>
 			</div>
 			<div className="flex flex-col col-span-3 p-2">
 				<label>Kategori</label>
+
 				<Select
-					options={state.pageState.selectOptions}
+					options={state.selectOptions}
 					placeholder="Kategori Seç"
 					instanceId={"select"}
-					classNames={{
-						control: (state) =>
-						  state.isFocused ? 'border-red-600' : 'border-grey-300',
-						
-					  }}
+
 					onChange={(e) => {
-					if (e == null) {
-						alert("Lütfen kategori seç");
-						return;
-					}
-					state.formState.category = state.pageState.categories[e?.value ?? 0];
+						if (e == null) {
+							alert("Lütfen kategori seç");
+							return;
+						}
+						setState({...state, selectedCategory: state.categories[e?.value ?? 0]});
 					}}
 				/>
 			</div>
@@ -177,9 +169,8 @@ export default function Product() {
 				<label htmlFor="short-description">Kısa Açıklama</label>
 				<textarea
 					className=""
-					value={state.formState.description}
 					id="short-description"
-					onChange={(e) => state.formState.description = e.target.value}
+					name="description"
 					placeholder="Açıklama"
 				/>
 			</div>
@@ -201,7 +192,7 @@ export default function Product() {
 				</tr>
 			</thead>
 			<tbody>
-				{state.pageState.products.map((item, index) => 
+				{state.products.map((item, index) =>
 					<tr 
 						className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-700"
 						key={index} onClick={() => window.location.href = `/product/info/${item.uri}`}>
