@@ -1,5 +1,5 @@
 import { SyntheticEvent, useEffect, useState } from "react"
-import Select from "react-select"
+import {useAppSelector} from "src/redux/Store";
 
 declare type Category = {
 	id: string,
@@ -7,19 +7,9 @@ declare type Category = {
 	uri: string
 }
 
-declare type Product = {
-	name: string,
-	description: string,
-	price: number,
-	tags: string[],
-	properties: {key:string, value: string}[]
-	productImages?: {fileUri: string, altText: string}[]
-	productCategories?: Category[]
-}
-
 export default function Category(){
 	const [name, setName] = useState("");
-	
+	const profile = useAppSelector((state) => state.profile);
 	const [categories, setCategories]: [Array<Category>, any] = useState([]);
 
 	useEffect(() => {
@@ -43,7 +33,7 @@ export default function Category(){
 		e.preventDefault();
 		let request = {
 			name,
-			sellerId: "11be2cf2-56aa-4c65-b40f-126cfa86f985",
+			sellerId: profile.id,
 			uri: name.toLowerCase()
 			.replaceAll(/ç/g,"c")
 			.replaceAll(/ğ/g,"g")
