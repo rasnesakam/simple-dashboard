@@ -1,9 +1,11 @@
-import { createAsyncThunk, createSlice} from "@reduxjs/toolkit";
+
+import {createAsyncThunk, createSlice,  PayloadAction} from "@reduxjs/toolkit";
 
 import storage from "redux-persist/lib/storage";
 import {persistReducer} from "redux-persist";
 
 export interface Profile {
+	id: string | undefined,
 	username: string | undefined,
 	isPending: boolean,
 	error: any,
@@ -12,6 +14,7 @@ export interface Profile {
 }
 
 const initialState: Profile = {
+	id: "",
 	username: "",
 	isPending: false,
 	error: null,
@@ -21,12 +24,32 @@ const initialState: Profile = {
 
 export const login = createAsyncThunk(
 	"auth/login",
-	async (req: any, thunkAPI:any) => {
+	async (req: Profile, thunkAPI:any) => {
 		try {
 			console.log("login request");
+			console.log(req);
+			console.log(thunkAPI);
+			let profile: Profile = {
+				id: req.id,
+				username: req.username,
+				isAuthenticated: true,
+				token: req.token,
+				isPending: false,
+				error: ""
+			}
+			return profile;
 		}
 		catch (e){
 			console.log(e);
+			let profile: Profile = {
+				id: "",
+				username: "",
+				isAuthenticated: false,
+				token: "",
+				isPending: false,
+				error: "e"
+			}
+			return profile;
 		}
 	}
 );
@@ -47,7 +70,7 @@ export const logout = createAsyncThunk(
 const persistConfig = {
 	key: "auth",
 	storage,
-	whitelist: ['Profile']
+	version: 1
 }
   
 
@@ -55,6 +78,14 @@ const ProfileSlice = createSlice({
 	name: "Profile",
 	initialState,
 	reducers: {
+		setProfile: (s, action:PayloadAction<Profile> ) => {
+			s.token = action.payload.token
+			s.isPending = action.payload.isPending
+			s.error = action.payload.error
+			s.isAuthenticated = action.payload.isAuthenticated
+			s.username = action.payload.username
+			return s;
+		}
 	},
 	extraReducers: (builder) => {
 		builder
@@ -62,10 +93,13 @@ const ProfileSlice = createSlice({
 				state.isPending = true;
 				state.error = undefined;
 			})
-			.addCase(login.fulfilled,(state)=> {
+			.addCase(login.fulfilled,(state, action)=> {
 				state.isPending = false;
+				state.id = action.payload.id;
+				state.username = action.payload.username;
+				state.error = action.payload.error;
 				state.isAuthenticated = true;
-				state.token = "TokenDoldu";
+				state.token = action.payload.token;
 			})
 			.addCase(login.rejected, (state, action) => {
 				state.isPending = false;
@@ -79,6 +113,12 @@ const ProfileSlice = createSlice({
 			})
 	}
 })
+
+ProfileSlice.reducer
+
+export const profileReducer = ProfileSlice.reducer;
+
+export const {setProfile} = ProfileSlice.actions
 
 const persistedProfileReducer = persistReducer(persistConfig, ProfileSlice.reducer);
 
