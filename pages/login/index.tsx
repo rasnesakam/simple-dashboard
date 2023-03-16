@@ -1,11 +1,16 @@
-import {useAppDispatch, useAppSelector} from "src/redux/Store";
+import {useAppDispatch} from "src/redux/Store";
 import {ChangeEvent, useState} from "react";
-import {login} from "src/redux/slices/Profile";
-import {Simulate} from "react-dom/test-utils";
-import error = Simulate.error;
+import {login, Profile} from "src/redux/slices/Profile";
+import jwtDecode from "jwt-decode";
+
+interface Token {
+    sub: string,
+    expr: number,
+    name: string,
+    iat: number,
+}
 
 export default function Login(){
-    const auth = useAppSelector((state) => state.persistedReducer.profile);
     const dispatch = useAppDispatch();
     const [formDatas, setFormDatas] = useState({userName: "", password: ""});
 
@@ -27,15 +32,32 @@ export default function Login(){
                     return response.json()
                 throw new Error(response.statusText);
             })
-            .then(data => {console.log(data)})
+            .then(data => {
+                console.log(data);
+                let jwt = jwtDecode<Token>(data.token);
+                let profile: Profile = {
+                    id: jwt.sub,
+                    username: formDatas.userName,
+                    isAuthenticated: true,
+                    token: data.token,
+                    isPending: false,
+                    error: ""
+                }
+                dispatch(login(profile))
+            })
             .catch(err => {console.log(err)})
     }
     return <>
-        <input name="userName" className="" value={userName} placeholder="Kullanıcı Adı"
-               onChange={onChangeInput}/>
-        <input name="password" className="" value={password} placeholder="Şifre"
-               onChange={onChangeInput}/>
+        <div className="h-screen flex flex-col justify-center items-center">
+            <div className="border shadow border-gray-500 rounded-sm flex flex-col justify-center items-center py-2 w-9/12">
+                <span className="text-3xl mb-4">Simple Dashboard</span>
+                <input name="userName" className="p-2 m-2" value={userName} placeholder="Kullanıcı Adı"
+                       onChange={onChangeInput}/>
+                <input name="password" className="p-2 m-2" value={password} placeholder="Şifre"
+                       onChange={onChangeInput}/>
 
-        <button className="" type="button" onClick={loginHandler}>Giriş Yap</button>
+                <button className="m-2 p-3 hover:bg-gray-500 hover:rounded-md" type="button" onClick={loginHandler}>Giriş Yap</button>
+            </div>
+        </div>
     </>
 }
