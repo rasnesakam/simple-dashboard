@@ -1,18 +1,14 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import styles from '../styles/Home.module.css'
-import {useAppDispatch, useAppSelector} from "src/redux/Store";
+import {useAppSelector} from "src/redux/Store";
 import Login from "pages/login";
-
-function login(){
-
-}
 
 function Content(children: any){
 	return (<>
 		<Head>
-			<title>Batarya Dünyası</title>
-			<meta name="description" content="Batarya Dünyası" />
+			<title>Simple Dashboard</title>
+			<meta name="charset" content="utf-8" />
 			<link rel="shortcut icon" href="/images/favicon.ico" />
 			<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico" />
 		</Head>
@@ -40,10 +36,14 @@ function Content(children: any){
 	</>)
 }
 
+
 export default function Layout({children}: any){
-	const auth = useAppSelector((state) => state.persistedReducer.profile);
-	const dispatch = useAppDispatch();
+	const auth = useAppSelector((state) => state.profile);
 	if (auth.isAuthenticated)
 		return Content(children)
-	return Login()
+	return <>
+
+		{auth.isAuthenticated ? <Content>{children}</Content> : <Login/>}
+
+	</>
 }
