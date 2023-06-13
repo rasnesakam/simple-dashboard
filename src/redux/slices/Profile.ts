@@ -25,44 +25,30 @@ const initialState: Profile = {
 export const login = createAsyncThunk(
 	"auth/login",
 	async (req: Profile, thunkAPI:any) => {
-		try {
-			console.log("login request");
-			console.log(req);
-			console.log(thunkAPI);
-			let profile: Profile = {
-				id: req.id,
-				username: req.username,
-				isAuthenticated: true,
-				token: req.token,
-				isPending: false,
-				error: ""
-			}
-			return profile;
+		let profile: Profile = {
+			id: req.id,
+			username: req.username,
+			isAuthenticated: true,
+			token: req.token,
+			isPending: false,
+			error: ""
 		}
-		catch (e){
-			console.log(e);
-			let profile: Profile = {
-				id: "",
-				username: "",
-				isAuthenticated: false,
-				token: "",
-				isPending: false,
-				error: "e"
-			}
-			return profile;
-		}
+		return profile;
 	}
 );
 
 export const logout = createAsyncThunk(
 	"auth/logout",
-	async (req, thunkAPIGet) => {
-		try {
-			console.log("logout request");
+	async (req: null, thunkAPI: any) => {
+		let profile: Profile = {
+			id: "",
+			username: "",
+			isAuthenticated: false,
+			token: "",
+			isPending: false,
+			error: ""
 		}
-		catch (e){
-			console.log(e);
-		}
+		return profile;
 	}
 );
 

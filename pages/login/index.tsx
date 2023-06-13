@@ -13,7 +13,10 @@ interface Token {
 export default function Login(){
     const dispatch = useAppDispatch();
     const [formDatas, setFormDatas] = useState({userName: "", password: ""});
-
+    const [page, setPage] = useState({
+        errorMessage: "",
+        passwordType: "password"
+    })
     const {userName, password} = formDatas;
     const onChangeInput = (e: ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
@@ -29,7 +32,11 @@ export default function Login(){
         })
             .then(response => {
                 if (response.ok)
-                    return response.json()
+                    return response.json();
+                if (response.status === 404)
+                    setPage({...page, errorMessage:"Kullanıcı bulunamadı"});
+                if (response.status === 401)
+                    setPage({...page, errorMessage:"Kullanıcı girişi başarısız."});
                 throw new Error(response.statusText);
             })
             .then(data => {
@@ -51,11 +58,15 @@ export default function Login(){
         <div className="h-screen flex flex-col justify-center items-center">
             <div className="border shadow border-gray-500 rounded-sm flex flex-col justify-center items-center py-2 w-9/12">
                 <span className="text-3xl mb-4">Simple Dashboard</span>
+                <span className="text-red-500">{page.errorMessage}</span>
                 <input name="userName" className="p-2 m-2" value={userName} placeholder="Kullanıcı Adı"
                        onChange={onChangeInput}/>
-                <input name="password" className="p-2 m-2" value={password} placeholder="Şifre"
+                <input name="password" type={page.passwordType} className="p-2 m-2" value={password} placeholder="Şifre"
                        onChange={onChangeInput}/>
-
+                <div>
+                    <input type="checkbox" id="pwd-checkbox" className="mx-2" onChange={e => setPage({...page, passwordType: (page.passwordType === "password") ? "text" : "password"})}/>
+                    <label htmlFor="pwd-checkbox">Şifreyi göster / gizle</label>
+                </div>
                 <button className="m-2 p-3 hover:bg-gray-500 hover:rounded-md" type="button" onClick={loginHandler}>Giriş Yap</button>
             </div>
         </div>

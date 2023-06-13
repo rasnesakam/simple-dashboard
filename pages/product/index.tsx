@@ -63,9 +63,9 @@ export default function Product() {
 		})
 		.then((data) => {
 			if (Array.isArray(data))
-				data.forEach(val => {
-					state.categories.push({id: val.id, uri: val.uri, name: val.name})
-				})
+
+				setState({...state, categories: data.map(item => ({id: item.id, uri: item.uri, name: item.name}))})
+				
 			setState(
 				{
 					...state,
@@ -91,7 +91,7 @@ export default function Product() {
 			state.products.splice(0,state.products.length);
 			state.selectOptions.splice(0, state.selectOptions.length);
 		}
-	}, [state]);
+	}, []);
 	
 	const submitForm = (e: React.SyntheticEvent) => {
 		e.preventDefault();
