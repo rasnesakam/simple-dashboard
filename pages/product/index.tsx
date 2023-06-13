@@ -63,9 +63,8 @@ export default function Product() {
 		})
 		.then((data) => {
 			if (Array.isArray(data))
-
 				setState({...state, categories: data.map(item => ({id: item.id, uri: item.uri, name: item.name}))})
-				
+				 
 			setState(
 				{
 					...state,
