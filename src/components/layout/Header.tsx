@@ -6,6 +6,13 @@ import { Button } from "@nextui-org/button";
 import { Input } from "@nextui-org/input";
 import { InboxIcon, MagnifyingGlassIcon, SunIcon, MoonIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
+import {
+	Dropdown,
+	DropdownTrigger,
+	DropdownMenu,
+	DropdownSection,
+	DropdownItem
+  } from "@nextui-org/dropdown";
 
 const Header = () => {
 	const [search, setSearch] = useState("");
@@ -16,7 +23,15 @@ const Header = () => {
 		<Button isIconOnly size="sm" className="bg-transparent text-gray-400 border border-gray-400 hover:border-gray-900 hover:text-gray-900 dark:hover:border-gray-200 dark:hover:text-gray-200">
 			<InboxIcon className="h-5 w-5"/>
 		</Button>
-		<Avatar isBordered radius="full" size="sm" color="default" className="text-gray-800" name="EM" />
+		<Dropdown>
+			<DropdownTrigger>
+				<Avatar isBordered radius="full" size="sm" color="default" className="text-gray-800" name="EM" />
+			</DropdownTrigger>
+			<DropdownMenu aria-label="User Actions" className="dark:text-black">
+				<DropdownItem key={"Account"}>Hesap</DropdownItem>
+				<DropdownItem key={"Logout"} className="text-red-800">Çıkış</DropdownItem>
+			</DropdownMenu>
+		</Dropdown>
 	</div>
 	<div className="px-2">
 		<Input type="text" isClearable={true} placeholder="Ara:" className="text-black" value={search} onValueChange={val => setSearch(val)} startContent={
